@@ -1,0 +1,176 @@
+name: 初始化 (Initialize)
+
+on:
+  workflow_dispatch:
+    inputs:
+      edition_web:
+        description: "WEB（三选一，必选）/ WEB (pick exactly one, required)"
+        type: boolean
+        default: false
+      edition_bluray:
+        description: "BluRay（三选一，必选）/ BluRay (pick exactly one, required)"
+        type: boolean
+        default: false
+      edition_label:
+        description: "自定义来源标识，WEB/BluRay 均未选择时填写（三选一，必选，命名规则见 docs/guides/EDITION_GUIDE.md）/ Custom source label, required only if neither WEB nor BluRay is picked (see docs/guides/EDITION_GUIDE.md)"
+        type: string
+        default: ""
+      manual_id:
+        description: "可选：手动指定 TMDB/IMDb ID 或 URL，留空则按仓库名自动搜索 TMDB / Optional: manual TMDB/IMDb ID or URL"
+        type: string
+        default: ""
+      force_init:
+        description: "可选：强制初始化，覆盖现有文件并重新生成；未匹配时生成空白模板 / Optional: force re-init, overwrite existing files"
+        type: boolean
+        default: false
+      dry_run:
+        description: "可选：跳过剧情摘要生成 / Optional: skip synopsis generation"
+        type: boolean
+        default: false
+      private_init:
+        description: "可选：初始化完成后转为私有仓库，用于测试/草稿阶段尚未准备好公开 / Optional: set repository to private after init, for drafts not yet ready to publish"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  init:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+
+      - name: Checkout subtitle-repo-actions
+        uses: actions/checkout@v4
+        with:
+          repository: MontageSubs/subtitle-repo-actions
+          path: .actions
+
+      - name: Relocate actions scripts outside the repo worktree
+        run: mv .actions /tmp/actions
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run orchestration script
+        id: orchestrate
+        env:
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          SERPSTACK_API_KEY: ${{ secrets.SERPSTACK_API_KEY }}
+          GOOGLE_LLM_TOKEN: ${{ secrets.GOOGLE_LLM_TOKEN }}
+          HUGGINGFACE_LLM_TOKEN: ${{ secrets.HUGGINGFACE_LLM_TOKEN }}
+          GOOGLE_TRANSLATE_API_KEY: ${{ secrets.GOOGLE_TRANSLATE_API_KEY }}
+          SECURE_DISPATCH_TOKEN: ${{ secrets.SECURE_DISPATCH_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_ACTOR_ID: ${{ github.actor_id }}
+          FORCE_INIT: ${{ github.event.inputs.force_init }}
+          MANUAL_ID: ${{ github.event.inputs.manual_id }}
+          PRIVATE_INIT: ${{ github.event.inputs.private_init }}
+          REPO_VARS_JSON: ${{ toJson(vars) }}
+        run: |
+          ARGS=(--repo-name="${{ github.event.repository.name }}" --github-repository="${{ github.repository }}")
+          if [ "$FORCE_INIT" = "true" ]; then ARGS+=(--force-init); fi
+          if [ -n "$MANUAL_ID" ]; then ARGS+=(--manual-id="$MANUAL_ID"); fi
+          if [ "$PRIVATE_INIT" = "true" ]; then ARGS+=(--private-init); fi
+          python /tmp/actions/actions/init/main.py "${ARGS[@]}"
+
+      - name: Dispatch admin provisioning
+        if: steps.orchestrate.outputs.admin_request != ''
+        env:
+          SECURE_DISPATCH_TOKEN: ${{ secrets.SECURE_DISPATCH_TOKEN }}
+          ADMIN_REQUEST: ${{ steps.orchestrate.outputs.admin_request }}
+        run: |
+          python /tmp/actions/actions/dispatch/main.py \
+            --bridge-repo org-admin-bridge \
+            --event-type provision-repository \
+            --repository-id="${{ github.repository_id }}" \
+            --payload "$ADMIN_REQUEST"
+
+      - name: Commit README
+        env:
+          ACTOR: ${{ github.actor }}
+          ACTOR_ID: ${{ github.actor_id }}
+        run: |
+          git config user.name "$ACTOR"
+          git config user.email "${ACTOR_ID}+${ACTOR}@users.noreply.github.com"
+          git add README.md
+          git diff --cached --quiet || git commit -m "chore: auto-init repository metadata"
+          git push
+
+      - name: Run edition scaffold
+        id: edition
+        if: steps.orchestrate.outputs.rendered == 'true'
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_ACTOR_ID: ${{ github.actor_id }}
+        run: |
+          ARGS=()
+          if [ "${{ github.event.inputs.edition_web }}" = "true" ]; then ARGS+=(--web); fi
+          if [ "${{ github.event.inputs.edition_bluray }}" = "true" ]; then ARGS+=(--bluray); fi
+          if [ -n "${{ github.event.inputs.edition_label }}" ]; then ARGS+=(--label="${{ github.event.inputs.edition_label }}"); fi
+          python /tmp/actions/actions/edition/main.py "${ARGS[@]}"
+
+      - name: Push edition scaffold
+        if: steps.orchestrate.outputs.rendered == 'true'
+        run: git push
+
+      - name: Run source fetch
+        id: source
+        if: steps.orchestrate.outputs.rendered == 'true' && github.event.inputs.dry_run != 'true'
+        env:
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_ACTOR_ID: ${{ github.actor_id }}
+          MANUAL_ID: ${{ github.event.inputs.manual_id }}
+          REPO_VARS_JSON: ${{ toJson(vars) }}
+        run: |
+          ARGS=(--best-effort --edition="${{ steps.edition.outputs.edition_dir }}")
+          if [ -n "$MANUAL_ID" ]; then ARGS+=(--manual-id="$MANUAL_ID"); fi
+          python /tmp/actions/actions/source/main.py "${ARGS[@]}"
+
+      - name: Dispatch OpenSubtitles fetch
+        if: steps.orchestrate.outputs.rendered == 'true' && github.event.inputs.dry_run != 'true' && steps.source.outputs.opensubtitles_request != '{}'
+        env:
+          SECURE_DISPATCH_TOKEN: ${{ secrets.SECURE_DISPATCH_TOKEN }}
+          OPENSUBTITLES_REQUEST: ${{ steps.source.outputs.opensubtitles_request }}
+        run: |
+          python /tmp/actions/actions/dispatch/main.py \
+            --bridge-repo opensubtitles-bridge \
+            --event-type fetch-opensubtitles \
+            --repository-id="${{ github.repository_id }}" \
+            --payload "$OPENSUBTITLES_REQUEST"
+
+      - name: Run synopsis pipeline
+        if: steps.orchestrate.outputs.rendered == 'true' && github.event.inputs.dry_run != 'true'
+        env:
+          GITHUB_REPOSITORY: ${{ steps.orchestrate.outputs.github_repository || github.repository }}
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+          GOOGLE_LLM_TOKEN: ${{ secrets.GOOGLE_LLM_TOKEN }}
+          HUGGINGFACE_LLM_TOKEN: ${{ secrets.HUGGINGFACE_LLM_TOKEN }}
+          FORCE_INIT: ${{ github.event.inputs.force_init }}
+          MANUAL_ID: ${{ github.event.inputs.manual_id }}
+          REPO_VARS_JSON: ${{ toJson(vars) }}
+        run: |
+          ARGS=()
+          if [ "$FORCE_INIT" = "true" ]; then ARGS+=(--force); fi
+          if [ -n "$MANUAL_ID" ]; then ARGS+=(--manual-id="$MANUAL_ID"); fi
+          python /tmp/actions/actions/synopsis/main.py "${ARGS[@]}"
+
+      - name: Commit synopsis
+        if: steps.orchestrate.outputs.rendered == 'true' && github.event.inputs.dry_run != 'true'
+        env:
+          ACTOR: ${{ github.actor }}
+          ACTOR_ID: ${{ github.actor_id }}
+        run: |
+          git config user.name "$ACTOR"
+          git config user.email "${ACTOR_ID}+${ACTOR}@users.noreply.github.com"
+          git add docs/synopsis README.md
+          git diff --cached --quiet || git commit -m "chore: generate synopsis"
+          git fetch origin
+          git rebase "origin/$(git rev-parse --abbrev-ref HEAD)" || git rebase --abort
+          git push

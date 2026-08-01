@@ -1,0 +1,57 @@
+name: LLM翻译草稿 (LLM Translation Draft)
+
+on:
+  workflow_dispatch:
+    inputs:
+      edition:
+        description: "指定版次目录，留空则处理全部版次 / Target edition, blank = all editions"
+        type: string
+        default: ""
+      language:
+        description: "源语言（BCP47），留空则处理该范围下全部source语言 / Source language (BCP47), blank = all"
+        type: string
+        default: ""
+      target_lang:
+        description: "目标语言 / Target language"
+        type: string
+        default: "zh-Hans"
+      force:
+        description: "强制覆盖已存在的LLM草稿请求 / Force re-request even if a draft already exists"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  llm-translate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+
+      - name: Checkout subtitle-repo-actions
+        uses: actions/checkout@v4
+        with:
+          repository: MontageSubs/subtitle-repo-actions
+          path: .actions
+
+      - name: Relocate actions scripts outside the repo worktree
+        run: mv .actions /tmp/actions
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Request LLM translation draft
+        env:
+          DISPATCH_TOKEN: ${{ secrets.DISPATCH_TOKEN }}
+          REPO_VARS_JSON: ${{ toJson(vars) }}
+        run: |
+          ARGS=()
+          if [ -n "${{ github.event.inputs.edition }}" ]; then ARGS+=(--edition="${{ github.event.inputs.edition }}"); fi
+          if [ -n "${{ github.event.inputs.language }}" ]; then ARGS+=(--lang="${{ github.event.inputs.language }}"); fi
+          if [ -n "${{ github.event.inputs.target_lang }}" ]; then ARGS+=(--target-lang="${{ github.event.inputs.target_lang }}"); fi
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then ARGS+=(--force); fi
+          python /tmp/actions/actions/llm-translate/main.py "${ARGS[@]}"

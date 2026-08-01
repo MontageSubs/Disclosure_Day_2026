@@ -1,0 +1,49 @@
+name: 删除 Edition (Delete Edition)
+
+on:
+  workflow_dispatch:
+    inputs:
+      edition_name:
+        description: "要删除的版次目录名（必填，如 web、bluray-uk）/ Edition directory name to delete (required)"
+        type: string
+        required: true
+      confirm:
+        description: "再次输入完全相同的版次目录名以确认删除 / Re-type the exact same name to confirm deletion"
+        type: string
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  delete-edition:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+
+      - name: Checkout subtitle-repo-actions
+        uses: actions/checkout@v4
+        with:
+          repository: MontageSubs/subtitle-repo-actions
+          path: .actions
+
+      - name: Relocate actions scripts outside the repo worktree
+        run: mv .actions /tmp/actions
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run edition deletion
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_ACTOR_ID: ${{ github.actor_id }}
+        run: |
+          python /tmp/actions/actions/edition/delete.py \
+            --name="${{ github.event.inputs.edition_name }}" \
+            --confirm="${{ github.event.inputs.confirm }}"
+
+      - name: Push deletion
+        run: git push

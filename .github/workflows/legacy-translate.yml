@@ -1,0 +1,72 @@
+name: 传统机翻草稿 (Legacy MT Draft)
+
+on:
+  push:
+    paths:
+      - 'subtitles/**/work/source/*.srt'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "强制覆盖已存在的机翻草稿，全量重跑 / Force-overwrite existing drafts, full rerun"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  legacy-translate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout subtitle-repo-actions
+        uses: actions/checkout@v4
+        with:
+          repository: MontageSubs/subtitle-repo-actions
+          path: .actions
+
+      - name: Relocate actions scripts outside the repo worktree
+        run: mv .actions /tmp/actions
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Resolve changed source files
+        if: github.event_name == 'push'
+        id: changed
+        run: |
+          BEFORE="${{ github.event.before }}"
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            FILES=$(git show --name-only --pretty=format: "${{ github.sha }}")
+          else
+            FILES=$(git diff --name-only "$BEFORE" "${{ github.sha }}")
+          fi
+          {
+            echo "files<<EOF"
+            echo "$FILES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Run legacy MT translation
+        env:
+          GOOGLE_TRANSLATE_API_KEY: ${{ secrets.GOOGLE_TRANSLATE_API_KEY }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_ACTOR_ID: ${{ github.actor_id }}
+          REPO_VARS_JSON: ${{ toJson(vars) }}
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            python /tmp/actions/actions/legacy-translate/main.py --changed-files "${{ steps.changed.outputs.files }}"
+          else
+            ARGS=(--scan-all)
+            if [ "${{ github.event.inputs.force }}" = "true" ]; then ARGS+=(--force); fi
+            python /tmp/actions/actions/legacy-translate/main.py "${ARGS[@]}"
+          fi
+
+      - name: Push MT drafts
+        run: git push

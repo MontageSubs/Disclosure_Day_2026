@@ -1,0 +1,55 @@
+name: 新增 Edition (Add Edition)
+
+on:
+  workflow_dispatch:
+    inputs:
+      edition_web:
+        description: "WEB（三选一，必选）/ WEB (pick exactly one, required)"
+        type: boolean
+        default: false
+      edition_bluray:
+        description: "BluRay（三选一，必选）/ BluRay (pick exactly one, required)"
+        type: boolean
+        default: false
+      edition_label:
+        description: "自定义来源标识，WEB/BluRay 均未选择时填写（三选一，必选，命名规则见 docs/guides/EDITION_GUIDE.md）/ Custom source label, required only if neither WEB nor BluRay is picked (see docs/guides/EDITION_GUIDE.md)"
+        type: string
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  add-edition:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+
+      - name: Checkout subtitle-repo-actions
+        uses: actions/checkout@v4
+        with:
+          repository: MontageSubs/subtitle-repo-actions
+          path: .actions
+
+      - name: Relocate actions scripts outside the repo worktree
+        run: mv .actions /tmp/actions
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run edition scaffold
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_ACTOR_ID: ${{ github.actor_id }}
+        run: |
+          ARGS=()
+          if [ "${{ github.event.inputs.edition_web }}" = "true" ]; then ARGS+=(--web); fi
+          if [ "${{ github.event.inputs.edition_bluray }}" = "true" ]; then ARGS+=(--bluray); fi
+          if [ -n "${{ github.event.inputs.edition_label }}" ]; then ARGS+=(--label="${{ github.event.inputs.edition_label }}"); fi
+          python /tmp/actions/actions/edition/main.py "${ARGS[@]}"
+
+      - name: Push edition scaffold
+        run: git push

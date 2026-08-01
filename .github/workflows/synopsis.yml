@@ -1,0 +1,62 @@
+name: 剧情摘要 (Synopsis)
+
+on:
+  workflow_dispatch:
+    inputs:
+      manual_id:
+        description: "手动指定 TMDB/IMDb ID 或 URL（可选，留空则从 README 现有信息读取）/ Optional manual TMDB/IMDb ID or URL"
+        type: string
+        default: ""
+      force:
+        description: "强制覆盖 GLOSSARY.md（默认已存在则跳过）/ Force overwrite GLOSSARY.md (skipped by default if it exists)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  synopsis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+
+      - name: Checkout subtitle-repo-actions
+        uses: actions/checkout@v4
+        with:
+          repository: MontageSubs/subtitle-repo-actions
+          path: .actions
+
+      - name: Relocate actions scripts outside the repo worktree
+        run: mv .actions /tmp/actions
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run synopsis pipeline
+        env:
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+          GOOGLE_LLM_TOKEN: ${{ secrets.GOOGLE_LLM_TOKEN }}
+          HUGGINGFACE_LLM_TOKEN: ${{ secrets.HUGGINGFACE_LLM_TOKEN }}
+          FORCE: ${{ github.event.inputs.force }}
+          MANUAL_ID: ${{ github.event.inputs.manual_id }}
+          REPO_VARS_JSON: ${{ toJson(vars) }}
+        run: |
+          ARGS=()
+          if [ "$FORCE" = "true" ]; then ARGS+=(--force); fi
+          if [ -n "$MANUAL_ID" ]; then ARGS+=(--manual-id "$MANUAL_ID"); fi
+          python /tmp/actions/actions/synopsis/main.py "${ARGS[@]}"
+
+      - name: Commit synopsis
+        env:
+          ACTOR: ${{ github.actor }}
+          ACTOR_ID: ${{ github.actor_id }}
+        run: |
+          git config user.name "$ACTOR"
+          git config user.email "${ACTOR_ID}+${ACTOR}@users.noreply.github.com"
+          git add docs/synopsis README.md
+          git diff --cached --quiet || git commit -m "chore: refresh synopsis"
+          git push

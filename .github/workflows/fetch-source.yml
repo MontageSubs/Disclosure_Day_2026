@@ -1,0 +1,72 @@
+name: 获取官方字幕 (Fetch Official Subtitles)
+
+on:
+  workflow_dispatch:
+    inputs:
+      edition:
+        description: "指定版次目录，留空则处理全部版次 / Target edition, blank = all editions"
+        type: string
+        default: ""
+      language:
+        description: "期待下载的语言（BCP47，可留空用TMDB原始语言，优先级最高）/ Desired language (BCP47; blank = use TMDB original language)"
+        type: string
+        default: ""
+      candidate_count:
+        description: "候选下载数量，1-10 / Number of candidates to download, 1-10"
+        type: string
+        default: "1"
+      imdb_id:
+        description: "手动指定 TMDB/IMDb ID 或 URL（可选）/ Manual TMDB/IMDb ID or URL (optional)"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  fetch-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+
+      - name: Checkout subtitle-repo-actions
+        uses: actions/checkout@v4
+        with:
+          repository: MontageSubs/subtitle-repo-actions
+          path: .actions
+
+      - name: Relocate actions scripts outside the repo worktree
+        run: mv .actions /tmp/actions
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run source fetch
+        id: source
+        env:
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_ACTOR_ID: ${{ github.actor_id }}
+          REPO_VARS_JSON: ${{ toJson(vars) }}
+        run: |
+          ARGS=()
+          if [ -n "${{ github.event.inputs.edition }}" ]; then ARGS+=(--edition="${{ github.event.inputs.edition }}"); fi
+          if [ -n "${{ github.event.inputs.language }}" ]; then ARGS+=(--lang="${{ github.event.inputs.language }}"); fi
+          if [ -n "${{ github.event.inputs.candidate_count }}" ]; then ARGS+=(--candidate-count="${{ github.event.inputs.candidate_count }}"); fi
+          if [ -n "${{ github.event.inputs.imdb_id }}" ]; then ARGS+=(--manual-id="${{ github.event.inputs.imdb_id }}"); fi
+          python /tmp/actions/actions/source/main.py "${ARGS[@]}"
+
+      - name: Dispatch OpenSubtitles fetch
+        if: steps.source.outputs.opensubtitles_request != '{}'
+        env:
+          SECURE_DISPATCH_TOKEN: ${{ secrets.SECURE_DISPATCH_TOKEN }}
+          OPENSUBTITLES_REQUEST: ${{ steps.source.outputs.opensubtitles_request }}
+        run: |
+          python /tmp/actions/actions/dispatch/main.py \
+            --bridge-repo opensubtitles-bridge \
+            --event-type fetch-opensubtitles \
+            --repository-id="${{ github.repository_id }}" \
+            --payload "$OPENSUBTITLES_REQUEST"

@@ -1,0 +1,49 @@
+name: 新增 Extra (Add Extra)
+
+on:
+  workflow_dispatch:
+    inputs:
+      edition_name:
+        description: "目标版次目录名（必填，如 web、bluray-uk）/ Target edition directory name (required)"
+        type: string
+        required: true
+      extra_title:
+        description: "番外内容标题（必填，如 预告片、Deleted Scene 1）/ Extra content title (required)"
+        type: string
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  add-extra:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+
+      - name: Checkout subtitle-repo-actions
+        uses: actions/checkout@v4
+        with:
+          repository: MontageSubs/subtitle-repo-actions
+          path: .actions
+
+      - name: Relocate actions scripts outside the repo worktree
+        run: mv .actions /tmp/actions
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run extra scaffold
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_ACTOR_ID: ${{ github.actor_id }}
+        run: |
+          python /tmp/actions/actions/extra/main.py \
+            --edition="${{ github.event.inputs.edition_name }}" \
+            --title="${{ github.event.inputs.extra_title }}"
+
+      - name: Push extra scaffold
+        run: git push
