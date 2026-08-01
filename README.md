@@ -1,100 +1,206 @@
-## 待初始化
+# 揭秘日 (2026) 中文字幕
+> Disclosure Day
 
-这是一个刚从模板创建的字幕仓库，尚未完成信息初始化。请按照以下步骤完成自动化配置。
+<!-- 此"影视内容简介"段落为自动生成，若无错误，请勿手动编辑 -->
 
-### 下一步
+<p align="center">
+  <img src="https://img.shields.io/badge/字幕状态-制作中-orange?style=flat-square" alt="字幕状态">
+  <img src="https://img.shields.io/badge/制作进度-0%25-blue?style=flat-square" alt="翻译进度">
+  <img src="https://img.shields.io/badge/版本-v1.0-brightgreen?style=flat-square" alt="版本">
+</p>
 
-1. **确认仓库名**：建议对照下方 [仓库命名规范](#仓库命名规范) 检查仓库名格式，如不符合，可前往 **[Settings](../../settings)** 修改。
-2. **检查可见性**：检查页面顶部仓库名右侧的标签
-   - 已显示 **Public** --> 进行第 3 步
-   - 显示 **Private** --> 点击 [此链接](../../settings#danger-zone) 进入 Danger Zone（或手动前往 **Settings --> General --> Danger Zone**），选择 **Change repository visibility** 更改为 **Public**
-3. **触发初始化**：进入 **[Actions](../../actions/workflows/init.yml)** 页面 --> 选择 **"初始化 (Initialize)"** 工作流 --> 点击 **Run workflow**，按下方[选项说明](#触发初始化时的选项说明)填写后运行。
+<p align="center">
+  <img src="https://image.tmdb.org/t/p/w500/mVjtYjFiSKFsdsKpb2e8fi6vMY3.jpg" alt="海报" width="200"/>
+</p>
 
-### 仓库命名规范
+<table align="center">
+  <tr>
+    <th><div align="center">豆瓣</div></th>
+    <th><div align="center">IMDb</div></th>
+    <th><div align="center">TMDB</div></th>
+  </tr>
+  <tr>
+    <td><div align="center"><a href="https://m.douban.com/movie/subject/36860212"><img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/douban/favicon.png" width="24" alt="豆瓣"></a></div></td>
+    <td><div align="center"><a href="https://www.imdb.com/title/tt15047880/"><img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/imdb/favicon_desktop_32x32._CB1582158068_.png" width="24" alt="IMDb"></a></div></td>
+    <td><div align="center"><a href="https://www.themoviedb.org/movie/1275779?language=zh-CN"><img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/tmdb/favicon-32x32.png" width="24" alt="TMDB"></a></div></td>
+  </tr>
+</table>
 
-仓库名必须为 **`英文片名_年份`** 格式（片名 + 分隔符 + 四位年份）。**缺失年份将无法解析，直接判定命名不合法。**
 
-片名部分的大小写与分隔符写法，建议对齐 TMDB 官方英文标题惯例，但不达标不会失败，工作流会自动改名修正。
 
-**推荐写法：**
-- `Cosmos_Laundromat_2015`：下划线分隔，逐词大小写对齐 TMDB 官方标题，一次通过、无需改名。
-- 也可以直接粘贴自然写法，如 `Cosmos Laundromat (2015)`：GitHub 创建仓库时会自动把空格、括号转换为短横线，工作流能正确识别短横线/下划线混用的仓库名，随后自动改名为标准写法。
+<h2 id="plot">剧情</h2>
 
-**属于命名错误的情况：**
-- 缺失年份（如仅 `Cosmos_Laundromat`），无法解析。
-- 片名与 TMDB 收录内容差异过大，或年份相差超过 1 年，视为未找到匹配作品。
+<!-- 此"影视内容简介"段落为自动生成，若无错误，请勿手动编辑 -->
 
-遇到以上情况，工作流会中止并将本 README 替换为错误说明，按提示操作即可。
+如果有人告诉你，我们并非宇宙中唯一的智慧生命，并且向你展示、证明了这一点，你会感到恐惧吗？今年夏天，真相将属于七十亿人。我们正一步步接近……揭秘日。
 
-### 触发初始化时的选项说明
 
-点击 **Run workflow** 后会展开以下参数。**WEB / BluRay / 自定义来源标识三者互斥，必须选定其中一项**；其余参数保持默认（留空/不勾选）即可。
+<h2 id="notes">字幕说明</h2>
 
-| 选项 | 含义 | 何时选择 |
-|---|---|---|
-| **WEB** | 本次资源来源为网络流媒体版本 | 来源是 WEB 时勾选此项（与 BluRay 互斥） |
-| **BluRay** | 本次资源来源为蓝光版本 | 来源是蓝光时勾选此项（与 WEB 互斥） |
-| **自定义来源标识** | 来源既非 WEB 也非 BluRay 时手动填写（如 `AMZN`、`Directors-Cut`），命名规则见 `docs/guides/EDITION_GUIDE.md` | 仅在 WEB / BluRay 均不适用时填写 |
-| **手动指定 TMDB/IMDb ID** | 跳过按仓库名自动搜索，直接用提供的 ID 或 URL 拉取信息 | 默认留空（按仓库名自动搜索）；仅当自动搜索匹配错误、或片名生僻难以被 TMDB 检索到时才填写 |
-| **强制初始化** | 忽略已初始化标记，清空现有文件并重新生成；若仍未匹配到作品则生成空白模板 | 首次初始化保持不勾选；仅在需要重新拉取信息或修复初始化异常时勾选 |
-| **跳过剧情摘要生成** | 跳过 Wikipedia/LLM 剧情摘要环节 | 默认不勾选；仅在摘要接口异常导致流程受阻时临时勾选，先完成基础初始化 |
-
-### 工作流说明
-
-工作流会自动根据仓库名在 TMDB 检索影视信息，并将本 README 重写为正式的项目主页。
-
-> [!NOTE]
-> - 自动化流程需要仓库为公开状态才能正常读写仓库信息。
-
----
-
-## Awaiting Initialization
-
-This is a subtitle repository created from a template and is awaiting initialization. Please follow the steps below to complete the automated setup.
-
-### Next Steps
-
-1. **Confirm Repository Name**: Check the repository name against the [Naming Conventions](#naming-conventions) below. If it doesn't match, you can update it in **[Settings](../../settings)**.
-2. **Check Visibility**: Check the label next to the repository name at the top of the page.
-   - **Public** --> Proceed to Step 3.
-   - **Private** --> Click [this link](../../settings#danger-zone) to enter the Danger Zone (or manually navigate to **Settings --> General --> Danger Zone**) and set **Change repository visibility** to **Public**.
-3. **Trigger Initialization**: Navigate to the **[Actions](../../actions/workflows/init.yml)** page --> select the **"Initialize"** workflow --> click **Run workflow**, filling in the fields per the [option guide](#workflow-options-explained) below.
-
-### Naming Conventions
-
-The repository name must follow **`EnglishTitle_Year`** (title + separator + four-digit year). **A missing year cannot be parsed and is immediately flagged as invalid.**
-
-For the title segment's casing and separators, matching TMDB's official English-title convention is recommended, but falling short doesn't fail the run; the workflow auto-renames to fix it.
-
-**Recommended forms:**
-- `Cosmos_Laundromat_2015`: underscore-separated, casing matched word-for-word to TMDB's official title; passes on the first try with no rename needed.
-- Pasting the natural form directly also works, e.g. `Cosmos Laundromat (2015)`: GitHub converts spaces and parentheses to hyphens on repo creation, and the workflow correctly parses names mixing hyphens and underscores, then auto-renames to the canonical form.
-
-**What counts as an invalid name:**
-- Missing year (e.g. just `Cosmos_Laundromat`), cannot be parsed.
-- Title too different from what TMDB has on record, or year off by more than 1, treated as no matching title found.
-
-In these cases the workflow aborts and replaces this README with an error message; just follow the instructions in it.
-
-### Workflow Options Explained
-
-Clicking **Run workflow** expands the following parameters. **WEB / BluRay / custom source label are mutually exclusive; exactly one must be selected.** All other parameters can stay at their defaults (blank/unchecked).
-
-| Option | Meaning | When to choose |
-|---|---|---|
-| **WEB** | This release's source is a web/streaming version | Check when the source is WEB (mutually exclusive with BluRay) |
-| **BluRay** | This release's source is a Blu-ray version | Check when the source is Blu-ray (mutually exclusive with WEB) |
-| **Custom source label** | Fill in manually when the source is neither WEB nor BluRay (e.g. `AMZN`, `Directors-Cut`); naming rules in `docs/guides/EDITION_GUIDE.md` | Fill only when neither WEB nor BluRay applies |
-| **Manual TMDB/IMDb ID** | Skips auto-search by repo name, fetching metadata directly from the given ID or URL | Leave blank by default (auto-search by repo name); fill in only if auto-search matches the wrong title, or the title is too obscure for TMDB search |
-| **Force init** | Ignores the initialization marker, wipes existing files and regenerates; produces a blank template if still no match | Leave unchecked on first run; check only to re-fetch metadata or recover from a broken init |
-| **Skip synopsis generation** | Skips the Wikipedia/LLM synopsis step | Leave unchecked by default; check temporarily only if the synopsis service is failing and you need to complete basic init first |
-
-### Workflow Details
-
-The workflow automatically retrieves metadata for movies and series from TMDB based on the repository name and rewrites this README as the official project homepage.
+<!-- 请字幕贡献者在下方手动填写。填写须知：
+1. 你填写的内容将作为最终字幕文件的发布说明，并显示在字幕网站的"字幕信息"中；
+2. 为兼容多数平台，请尽量控制在 500 字以内；
+3. 建议说明字幕制作流程，必要的技术信息（如匹配版本）；
+4. 在下方一行以 ">" 开头后面输入内容；如需分多段，每段（含段间空行）都要以 ">" 开头，否则后续段落会跳出引用块 -->
 
 > [!NOTE]
-> - The repository must be public for the automation to read and write metadata.
+> 在这里写一段 100-500 字的字幕说明吧，用于发布在字幕网站。可以聊聊制作过程中的挑战、这部作品的特色、团队的付出，或任何想和观众分享的内容
+
+<h3 id="feedback">字幕反馈</h3>
+
+| 类型 | 用途 | 入口 |
+|:---:|:---|:---:|
+| **问题反馈** | 字幕错误、时间轴错位、下载链接失效等 | [提交 Issue](https://github.com/montagesubs/Disclosure_Day_2026/issues) |
+| **交流讨论** | 剧情感想、字幕点评、与制作组交流 | [参与 Discussions](https://github.com/montagesubs/Disclosure_Day_2026/discussions) |
+
+<h2 id="downloads">字幕下载</h2>
+
+<!-- 此"下载"段落暂时未实现自动生成，你可手动编辑。
+     左列为字幕站 profile 链接（常驻，无需等发布后再填）；
+     "下载"列为下载徽章，一个站点可放多个（不同格式/语言版本），
+     发布后将对应占位符替换为如下格式：
+     [![SRT](https://img.shields.io/badge/-SRT-555?style=flat-square)](实际下载链接)
+     "最后更新"列填该站点当前版本的更新日期（YYYY-MM-DD），每次修订字幕后同步更新；
+     新增站点或繁体版本，直接新增一行即可 -->
+
+> 以下平台内容完全一致，任选其一下载即可
+
+| 字幕站 | 下载 | 最后更新 |
+| :---: | :--- | :---: |
+| [<img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/subhd/favicon-32x32.png" alt="SubHD" width="20" height="20"/> **SubHD**](https://subhd.tv/u/%E8%92%99%E5%A4%AA%E5%A5%87%E5%AD%97%E5%B9%95%E7%BB%84) | *(待发布)* | *(待发布)* |
+| [<img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/zimuku/favicon.png" alt="字幕库" width="20" height="20"/> **字幕库**](https://zimuku.org/u/A3y3QmGy0) | *(待发布)* | *(待发布)* |
+| <img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/assrt/favicon.png" alt="射手网(伪)" width="20" height="20"/> **射手网(伪)** | *(待发布)* | *(待发布)* |
+| [<img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/subrain/favicon.png" alt="暮雨字幕网" width="20" height="20"/> **暮雨字幕网**](https://subrain.tv/u/montagesubs) | *(待发布)* | *(待发布)* |
+| [<img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/opensubtitles/org/favicon.png" alt="OpenSubtitles" width="20" height="20"/> **OpenSubtitles**](https://www.opensubtitles.org/profile/iduser-10447713) | *(待发布)* | *(待发布)* |
+
+
+<h2 id="contributors">字幕贡献者</h2>
+
+<!-- 复制一行 <td>...</td> 替换用户名与头衔即可，务必保留 align/valign 属性
+     头像：https://wsrv.nl/?url=github.com/.png&w=48&h=48&mask=circle&output=png
+     多角色用 <br/> 换行；每行 4 人，不满一行用 <td valign="top"></td> 补齐 -->
+
+<table>
+<tr>
+<td align="center" valign="top"><a href="https://github.com/MontageSubs"><img src="https://wsrv.nl/?url=github.com/MontageSubs.png&w=48&h=48&mask=circle&output=png" width="48" height="48" alt="用户名"/><br/><b>用户名</b></a><br/><sub>项目协调员</sub></td>
+<td align="center" valign="top"><a href="https://github.com/MontageSubs"><img src="https://wsrv.nl/?url=github.com/MontageSubs.png&w=48&h=48&mask=circle&output=png" width="48" height="48" alt="用户名"/><br/><b>用户名</b></a><br/><sub>翻译</sub></td>
+<td align="center" valign="top"><a href="https://github.com/MontageSubs"><img src="https://wsrv.nl/?url=github.com/MontageSubs.png&w=48&h=48&mask=circle&output=png" width="48" height="48" alt="用户名"/><br/><b>用户名</b></a><br/><sub>校对</sub></td>
+<td align="center" valign="top"><a href="https://github.com/MontageSubs"><img src="https://wsrv.nl/?url=github.com/MontageSubs.png&w=48&h=48&mask=circle&output=png" width="48" height="48" alt="用户名"/><br/><b>用户名</b></a><br/><sub>时间轴</sub></td>
+</tr>
+<tr>
+<td align="center" valign="top"><a href="https://github.com/MontageSubs"><img src="https://wsrv.nl/?url=github.com/MontageSubs.png&w=48&h=48&mask=circle&output=png" width="48" height="48" alt="用户名"/><br/><b>用户名</b></a><br/><sub>后期<br/>特效</sub></td>
+<td align="center" valign="top"><a href="https://github.com/MontageSubs"><img src="https://wsrv.nl/?url=github.com/MontageSubs.png&w=48&h=48&mask=circle&output=png" width="48" height="48" alt="用户名"/><br/><b>用户名</b></a><br/><sub>技术支持</sub></td>
+<td align="center" valign="top"></td>
+<td align="center" valign="top"></td>
+</tr>
+</table>
+
+*这份字幕，是我们一起做成的！*
+
+
+
+
+
+
+
+
+
+
+<h2 id="about-montagesubs">关于蒙太奇字幕社区 (MontageSubs)</h2>
+
+<!-- 此段为固定段落，非必要请勿更改 -->
+
+**蒙太奇字幕社区 (MontageSubs)** 是一个平等、开放的志愿者社区，成员因对影视与翻译的热爱而聚在一起，共同为优秀的作品制作高质量的中文字幕。这里没有固定的层级：任何人都可以发起一个字幕项目、担任协调员并邀请他人加入，也可以随时加入他人发起的项目、贡献自己擅长的部分。
+
+<h3 id="how-to-contribute">如何参与</h3>
+
+<!-- 此段为固定段落，非必要请勿更改 -->
+
+- **发起项目：** 看中了一部作品？直接创建仓库、组建团队，你就是这个项目的协调员
+- **加入项目：** 在 Discussions 或 Telegram 群组中，找到正在进行的项目，认领翻译、校对、时间轴、后期等任一环节
+- **了解协作方式：** 开始前建议先浏览 **[贡献指南](./docs/project/CONTRIBUTING.md)**、**[翻译与风格指南](./docs/guides/TRANSLATION_GUIDE.md)**、**[GitHub 使用指南](./docs/project/GITHUB_USAGE_GUIDE.md)**
+
+<h2 id="community">社群</h2>
+
+<h3 id="collaborate">加入交流与协作</h3>
+
+我们的主要活动场所是 Telegram 群组与 IRC，以下平台也都能找到我们。
+
+<table>
+  <tr>
+    <th><div align="center">Telegram 社群</div></th>
+    <th><div align="center">IRC 聊天频道</div></th>
+    <th><div align="center">Discord</div></th>
+    <th><div align="center">Matrix</div></th>
+    <th><div align="center">线上论坛</div></th>
+  </tr>
+  <tr>
+    <td><div align="center"><a href="https://t.me/+eQEcQmc1OvM4ODJh"><img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/telegram/favicon-32x32.png" width="20" alt="Telegram Group"/><br/>@MontageSubs</a></div></td>
+    <td><div align="center"><a href="https://web.libera.chat/#MontageSubs"><img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/liberachat/favicon.png" width="20" alt="IRC"/><br/>#MontageSubs</a></div></td>
+    <td><div align="center"><a href="https://discord.com/invite/UuQ8tFpMYy"><img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/discord/favicon.png" width="20" alt="Discord"/><br/>#MontageSubs</a></div></td>
+    <td><div align="center"><a href="https://matrix.to/#/#montagesubs:matrix.org"><img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/matrix/matrix-icon-white-32.png" width="20" alt="Matrix"/><br/>#MontageSubs</a></div></td>
+    <td><div align="center"><a href="https://github.com/orgs/MontageSubs/discussions"><img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/github/GitHub_Invertocat_White_Clearspace.png" width="20" alt="Discussions"/><br/>GitHub论坛</a></div></td>
+  </tr>
+</table>
+
+<h3 id="news">获取更新通知</h3>
+
+以下平台发布内容完全同步，关注任一渠道即可及时获取字幕发布通知。
+
+<table>
+  <tr>
+    <th><div align="center">Telegram 频道</div></th>
+    <th><div align="center">微博</div></th>
+    <th><div align="center">BlueSky</div></th>
+    <th><div align="center">Mastodon</div></th>
+    <th><div align="center">X (Twitter)</div></th>
+  </tr>
+  <tr>
+    <td><div align="center"><a href="https://t.me/s/MTSubs"><img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/telegram/favicon-32x32.png" width="20" alt="Telegram"/><br/>@MTSubs</a></div></td>
+    <td><div align="center"><a href="https://weibo.com/u/8358891788"><img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/weibo/favicon.png" width="20" alt="微博"/><br/>蒙太奇字幕组</a></div></td>
+    <td><div align="center"><a href="https://bsky.app/profile/montagesubs.bsky.social"><img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/bluesky/favicon-32x32.png" width="20" alt="BlueSky"/><br/>@MontageSubs</a></div></td>
+    <td><div align="center"><a href="https://mastodon.social/@montagesubs"><img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/mastodon/favicon-32x32.png" width="20" alt="Mastodon"/><br/>@MontageSubs</a></div></td>
+    <td><div align="center"><a href="https://x.com/Montage_Subs"><img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/x/favicon.png" width="20" alt="X (Twitter)"/><br/>@Montage_Subs</a></div></td>
+  </tr>
+</table>
+
+<h3 id="media">预告与花絮</h3>
+
+<table>
+  <tr>
+    <th><div align="center">YouTube</div></th>
+    <th><div align="center">哔哩哔哩</div></th>
+    <th><div align="center">Instagram</div></th>
+  </tr>
+  <tr>
+    <td><div align="center"><a href="https://www.youtube.com/@MontageSubs"><img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/youtube/favicon-32.png" width="20" alt="YouTube"/><br/>@MontageSubs</a></div></td>
+    <td><div align="center"><a href="https://space.bilibili.com/3493120803080246"><img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/bilibili/favicon.png" width="20" alt="Bilibili"/><br/>蒙太奇字幕组</a></div></td>
+    <td><div align="center"><a href="https://www.instagram.com/MontageSubs/"><img src="https://raw.githubusercontent.com/MontageSubs/external-assets/main/icons/instagram/favicon.png" width="20" alt="Instagram"/><br/>@MontageSubs</a></div></td>
+  </tr>
+</table>
+
+<h3 id="more-links">更多链接</h3>
+
+<table>
+  <tr>
+    <th><div align="center">字幕社区网站</div></th>
+  </tr>
+  <tr>
+    <td><div align="center"><a href="https://montagesubs.github.io/"><img src="https://raw.githubusercontent.com/MontageSubs/brand-assets/main/logos/favicon/default/png/favicon-32.png" width="20" alt="Official site"/><br/>蒙太奇字幕社区网站</a></div></td>
+  </tr>
+</table>
+
+<h2 id="license">许可协议</h2>
+
+<!-- 此段为固定段落，非必要请勿更改 -->
+
+本仓库中的所有内容（除非另有声明）均采用 **CC BY-NC-SA 4.0** 许可协议发布。
+
+你可以自由地分享和修改，但必须署名、禁止用于商业用途，并以相同的方式共享。详情请见 **[许可协议（LICENSE）](./LICENSE)** 文件。
+
+<h2 id="copyright">著作权声明</h2>
+
+我们不参与亦不支持任何形式的盗版制作、分发或传播。字幕的制作基于合理使用或其他法定著作权例外而进行，具体说明请详阅我们的 [著作权声明](./docs/project/COPYRIGHT.md)。
 
 ---
 
@@ -104,3 +210,5 @@ The workflow automatically retrieves metadata for movies and series from TMDB ba
 "用爱发电 ❤️ Powered by Love"
 
 </div>
+
+<!-- montagesubs:initialized -->
